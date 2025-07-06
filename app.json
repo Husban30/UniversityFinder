@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "UniversityFinder",
+    "slug": "UniversityFinder",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.husban30.UniversityFinder"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "universityfinder",
+    "extra": {
+      "eas": {
+        "projectId": "00a68c66-fde6-47a9-a23f-95362e5166be"
+      }
+    }
+  }
+}
