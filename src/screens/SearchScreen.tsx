@@ -290,6 +290,10 @@ export const SearchScreen: React.FC = () => {
     setSortOrder(null);
   };
 
+  const validateSearchQuery = (query: string): boolean => {
+    return query.trim().length >= 2;
+  };
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
