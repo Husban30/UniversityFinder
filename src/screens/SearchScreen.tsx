@@ -29,6 +29,9 @@ export const SearchScreen: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
   const [showCityFilter, setShowCityFilter] = useState(false);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -39,9 +42,18 @@ export const SearchScreen: React.FC = () => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
+    setError(null);
     setCityFilter('');
     setShowCityFilter(false);
     setSortOrder(null);
+    setShowHistory(false);
+    
+    // Add to search history
+    const trimmedQuery = searchQuery.trim();
+    setSearchHistory(prev => {
+      const newHistory = [trimmedQuery, ...prev.filter(item => item !== trimmedQuery)].slice(0, 5);
+      return newHistory;
+    });
     
     // Reset animations for new search
     fadeAnim.setValue(0);
@@ -221,6 +233,7 @@ export const SearchScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Search error:', error);
+      setError('Failed to search universities. Please try again.');
       setUniversities([]);
     } finally {
       setLoading(false);
@@ -363,12 +376,26 @@ export const SearchScreen: React.FC = () => {
                 placeholder={searchType === 'name' ? 'Search by university name...' : 'Search by country...'}
                 placeholderTextColor="#999"
                 value={searchQuery}
-                onChangeText={setSearchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  setError(null); // Clear error when user types
+                  setShowHistory(text.length > 0 && searchHistory.length > 0);
+                }}
+                onFocus={() => {
+                  if (searchHistory.length > 0) {
+                    setShowHistory(true);
+                  }
+                }}
                 onSubmitEditing={handleSearch}
                 returnKeyType="search"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <TouchableOpacity onPress={() => {
+                  setSearchQuery('');
+                  setShowHistory(false);
+                }}>
                   <Ionicons name="close-circle" size={20} color="#999" />
                 </TouchableOpacity>
               )}
@@ -377,6 +404,26 @@ export const SearchScreen: React.FC = () => {
               <Text style={styles.searchButtonText}>Search</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Search History Dropdown */}
+          {showHistory && searchHistory.length > 0 && (
+            <View style={styles.historyContainer}>
+              {searchHistory.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.historyItem}
+                  onPress={() => {
+                    setSearchQuery(item);
+                    setShowHistory(false);
+                    handleSearch();
+                  }}
+                >
+                  <Ionicons name="time-outline" size={16} color="#999" />
+                  <Text style={styles.historyText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Filter Controls */}
           {showCityFilter && (
@@ -595,10 +642,16 @@ export const SearchScreen: React.FC = () => {
         scrollEventThrottle={16}
         ListEmptyComponent={
           loading ? (
-                    <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#57B9FF" />
-          <Text style={styles.loadingText}>Searching universities...</Text>
-        </View>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#57B9FF" />
+              <Text style={styles.loadingText}>Searching universities...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={80} color="#FF6B6B" />
+              <Text style={styles.errorTitle}>Search Error</Text>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
               <Ionicons name="school-outline" size={80} color="#CCC" />
@@ -932,5 +985,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     fontWeight: '500',
+  },
+  historyContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginTop: 8,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  historyText: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 64,
+  },
+  errorTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FF6B6B',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 }); 
